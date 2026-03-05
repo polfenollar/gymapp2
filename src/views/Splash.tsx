@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Dumbbell } from 'lucide-react';
 import './Splash.css';
 
 export default function Splash() {
@@ -22,11 +21,10 @@ export default function Splash() {
 
     return (
         <div className="splash-container">
-            <div className="logo-pulse">
-                <Dumbbell size={80} className="logo-icon" color="var(--accent-primary)" />
+            {/* The background is handled via CSS */}
+            <div className="splash-content fade-in">
+                {/* We just need an empty container for the background image to shine */}
             </div>
-            <h1 className="splash-title">GymApp</h1>
-            <p className="splash-subtitle">Periodización de Precisión</p>
         </div>
     );
 }

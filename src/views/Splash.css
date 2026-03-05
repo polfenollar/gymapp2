@@ -4,43 +4,38 @@
     align-items: center;
     justify-content: center;
     height: 100vh;
-    background-color: var(--bg-primary);
-    color: var(--text-primary);
+    width: 100vw;
+    background-color: #000;
+    /* Important: Vite public path prefix if needed, but '/splash-bg.png' is usually enough */
+    background-image: url('/gymapp2/splash-bg.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: relative;
+    overflow: hidden;
 }
 
-.logo-pulse {
-    animation: pulse 2s infinite ease-in-out;
-    margin-bottom: 24px;
+.splash-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom, transparent 60%, rgba(0, 0, 0, 0.8));
+    pointer-events: none;
 }
 
-.splash-title {
-    font-size: 36px;
-    font-weight: 800;
-    margin-bottom: 8px;
-    letter-spacing: 2px;
+.fade-in {
+    animation: fadeIn 1.5s ease-forward;
 }
 
-.splash-subtitle {
-    color: var(--text-secondary);
-    font-size: 16px;
-    text-transform: uppercase;
-    letter-spacing: 4px;
-}
-
-@keyframes pulse {
-    0% {
-        transform: scale(0.9);
-        opacity: 0.8;
+@keyframes fadeIn {
+    from {
+        opacity: 0;
     }
 
-    50% {
-        transform: scale(1.1);
+    to {
         opacity: 1;
-        filter: drop-shadow(0 0 15px var(--accent-primary));
-    }
-
-    100% {
-        transform: scale(0.9);
-        opacity: 0.8;
     }
 }
