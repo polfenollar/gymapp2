@@ -217,17 +217,24 @@ export default function ActiveWorkout() {
                     );
                     setCurrentWeek(weekNum);
                 }
-                // Load the first day of the current week
+                // Load the day based on natural calendar (1 = Lunes, 7 = Domingo)
+                const jsDay = new Date().getDay();
+                const naturalDayNumber = jsDay === 0 ? 7 : jsDay;
+
                 const weekDays = await db.workoutDays
                     .where('[blockId+weekNumber]')
                     .equals([activeBlockId, weekNum])
                     .toArray();
-                const firstDay = weekDays.sort((a, b) => a.dayNumber - b.dayNumber)[0];
-                if (firstDay && firstDay.exerciseIds.length > 0) {
+
+                const todayWorkout = weekDays.find(d => d.dayNumber === naturalDayNumber);
+                if (todayWorkout && todayWorkout.exerciseIds.length > 0) {
                     const exs = await Promise.all(
-                        firstDay.exerciseIds.map(id => db.exerciseLibrary.get(id))
+                        todayWorkout.exerciseIds.map(id => db.exerciseLibrary.get(id))
                     );
                     setExercises(exs.filter(Boolean) as ExerciseLibrary[]);
+                    return;
+                } else {
+                    setExercises([]); // Resting day
                     return;
                 }
             }
@@ -241,7 +248,9 @@ export default function ActiveWorkout() {
         <div className="screen-padding workout-container fade-in">
             <div className="workout-topbar">
                 <div className="workout-header-text">
-                    <h2 style={{ marginBottom: 0 }}>Día 1</h2>
+                    <h2 style={{ marginBottom: 0 }}>
+                        {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'][(new Date().getDay() === 0 ? 7 : new Date().getDay()) - 1]}
+                    </h2>
                     <span className="text-secondary text-sm">Semana {currentWeek}</span>
                 </div>
                 <div className="workout-header-chrono">
@@ -253,7 +262,13 @@ export default function ActiveWorkout() {
                 {exercises.map(ex => (
                     <ExerciseCard key={ex.id} exercise={ex} />
                 ))}
-                {exercises.length === 0 && <p className="text-secondary text-center mt-24">No se encontraron ejercicios.</p>}
+                {exercises.length === 0 && (
+                    <div className="empty-state text-center mt-32">
+                        <Trophy size={48} className="text-secondary mb-16" />
+                        <h3>Día de Descanso</h3>
+                        <p className="text-secondary mt-8">Hoy no tienes ejercicios programados.<br />¡Aprovecha para recuperar!</p>
+                    </div>
+                )}
             </div>
 
             <button className="primary-btn bottom-fixed action-glow main-cta" onClick={() => navigate('/dashboard')}>

@@ -6,6 +6,8 @@ import { ChevronRight, ChevronLeft, Save, HelpCircle, Plus, X, Copy } from 'luci
 import ExerciseSelectorModal from '../components/ExerciseSelectorModal';
 import './ConfigFlow.css';
 
+const WEEK_DAYS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+
 const TARGETS = [
     {
         id: 'Fuerza',
@@ -44,8 +46,7 @@ export default function ConfigFlow() {
     const [step, setStep] = useState(0);
     const [target, setTarget] = useState('Hipertrofia');
     const [duration, setDuration] = useState(8);
-    const [daysPerWeek, setDaysPerWeek] = useState(4);
-    const [daysConfig, setDaysConfig] = useState<number[][]>([]);
+    const [daysConfig, setDaysConfig] = useState<number[][]>(Array(7).fill([]));
     const [library, setLibrary] = useState<ExerciseLibrary[]>([]);
     const [activeBlock, setActiveBlock] = useState<BlockConfig | null>(null);
     const [allDays, setAllDays] = useState<WorkoutDay[]>([]);
@@ -79,15 +80,7 @@ export default function ConfigFlow() {
         fetchActive();
     }, [activeBlockId]);
 
-    useEffect(() => {
-        setDaysConfig(prev => {
-            const newConfig = Array(daysPerWeek).fill([]);
-            for (let i = 0; i < Math.min(daysPerWeek, prev.length); i++) {
-                newConfig[i] = prev[i];
-            }
-            return newConfig;
-        });
-    }, [daysPerWeek]);
+
 
     const toggleExercise = (dayIndex: number, exerciseId: number) => {
         const newDays = [...daysConfig];
@@ -109,12 +102,13 @@ export default function ConfigFlow() {
 
     const handleSave = async () => {
         try {
+            const calculatedDaysPerWeek = daysConfig.filter(d => d.length > 0).length;
             let blockId = activeBlock?.id;
             if (blockId) {
                 await db.blockConfigs.update(blockId, {
                     target,
                     durationWeeks: duration,
-                    daysPerWeek
+                    daysPerWeek: calculatedDaysPerWeek
                 });
 
                 if (editingWeek !== null) {
@@ -126,7 +120,7 @@ export default function ConfigFlow() {
                     for (const day of existingDays) {
                         if (day.id) await db.workoutDays.delete(day.id);
                     }
-                    for (let i = 0; i < daysPerWeek; i++) {
+                    for (let i = 0; i < 7; i++) {
                         await db.workoutDays.add({
                             blockId,
                             weekNumber: editingWeek,
@@ -138,7 +132,7 @@ export default function ConfigFlow() {
                     // Template mode: replicate across ALL weeks
                     await db.workoutDays.where('blockId').equals(blockId).delete();
                     for (let week = 1; week <= duration; week++) {
-                        for (let i = 0; i < daysPerWeek; i++) {
+                        for (let i = 0; i < 7; i++) {
                             await db.workoutDays.add({
                                 blockId,
                                 weekNumber: week,
@@ -152,13 +146,13 @@ export default function ConfigFlow() {
                 blockId = await db.blockConfigs.add({
                     target,
                     durationWeeks: duration,
-                    daysPerWeek,
+                    daysPerWeek: calculatedDaysPerWeek,
                     startDate: new Date().toISOString()
                 }) as number;
 
                 // New plan: replicate template across all weeks
                 for (let week = 1; week <= duration; week++) {
-                    for (let i = 0; i < daysPerWeek; i++) {
+                    for (let i = 0; i < 7; i++) {
                         await db.workoutDays.add({
                             blockId,
                             weekNumber: week,
@@ -223,10 +217,9 @@ export default function ConfigFlow() {
                                 const weekDays = getDaysForWeek(selectedWeek);
                                 setTarget(activeBlock.target);
                                 setDuration(activeBlock.durationWeeks);
-                                setDaysPerWeek(activeBlock.daysPerWeek);
-                                const newDaysConfig = Array(activeBlock.daysPerWeek).fill([]);
+                                const newDaysConfig = Array(7).fill([]);
                                 weekDays.forEach(day => {
-                                    if (day.dayNumber <= activeBlock.daysPerWeek) {
+                                    if (day.dayNumber <= 7) {
                                         newDaysConfig[day.dayNumber - 1] = day.exerciseIds || [];
                                     }
                                 });
@@ -242,7 +235,7 @@ export default function ConfigFlow() {
                     <div className="days-list scrollable-area">
                         {getDaysForWeek(selectedWeek).map(day => (
                             <div key={day.id} className="day-card">
-                                <h3 className="mb-8" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>Día {day.dayNumber}</h3>
+                                <h3 className="mb-8" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>{WEEK_DAYS[day.dayNumber - 1]}</h3>
                                 <div className="selected-exercises-list">
                                     {day.exerciseIds.map((exId, idx) => {
                                         const ex = library.find(l => l.id === exId);
@@ -262,10 +255,9 @@ export default function ConfigFlow() {
                             const week1Days = getDaysForWeek(1);
                             setTarget(activeBlock.target);
                             setDuration(activeBlock.durationWeeks);
-                            setDaysPerWeek(activeBlock.daysPerWeek);
-                            const newDaysConfig = Array(activeBlock.daysPerWeek).fill([]);
+                            const newDaysConfig = Array(7).fill([]);
                             week1Days.forEach(day => {
-                                if (day.dayNumber <= activeBlock.daysPerWeek) {
+                                if (day.dayNumber <= 7) {
                                     newDaysConfig[day.dayNumber - 1] = day.exerciseIds || [];
                                 }
                             });
@@ -281,8 +273,7 @@ export default function ConfigFlow() {
                                 setActiveBlockId(null);
                                 setTarget('Hipertrofia');
                                 setDuration(8);
-                                setDaysPerWeek(4);
-                                setDaysConfig([]);
+                                setDaysConfig(Array(7).fill([]));
                                 setEditingWeek(null);
                                 setStep(1);
                             }
@@ -346,13 +337,6 @@ export default function ConfigFlow() {
                             onChange={e => setDuration(parseInt(e.target.value))}
                         />
                     </div>
-                    <div className="input-group">
-                        <label>Frecuencia ({daysPerWeek} Días/Semana)</label>
-                        <input
-                            type="range" min="1" max="7" value={daysPerWeek}
-                            onChange={e => setDaysPerWeek(parseInt(e.target.value))}
-                        />
-                    </div>
                     <div className="action-row bottom-fixed">
                         <button className="secondary-btn" onClick={() => setStep(1)}>
                             <ChevronLeft size={20} /> Atrás
@@ -385,7 +369,7 @@ export default function ConfigFlow() {
                             <div key={dayIndex} className="day-card">
                                 <div className="flex-between">
                                     <div>
-                                        <h3 style={{ marginBottom: '4px' }}>Día {dayIndex + 1}</h3>
+                                        <h3 style={{ marginBottom: '4px' }}>{WEEK_DAYS[dayIndex]}</h3>
                                         <span className="text-secondary text-sm">{selectedIds.length} ejercicios</span>
                                     </div>
                                     <button
@@ -437,7 +421,7 @@ export default function ConfigFlow() {
                 <ExerciseSelectorModal
                     isOpen={true}
                     onClose={() => setEditingDayIdx(null)}
-                    dayName={`Día ${editingDayIdx + 1}`}
+                    dayName={WEEK_DAYS[editingDayIdx]}
                     library={library}
                     selectedIds={daysConfig[editingDayIdx] || []}
                     onToggle={(id) => toggleExercise(editingDayIdx, id)}
