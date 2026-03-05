@@ -1,0 +1,92 @@
+:root {
+  --bg-primary: #121212;
+  --bg-secondary: #1A1A1A;
+  --bg-tertiary: #2C2C2C;
+  --accent-primary: #EDB359;
+  --accent-secondary: #C9963C;
+  --text-primary: #FFFFFF;
+  --text-secondary: #A0A0A0;
+  --border-color: rgba(237, 179, 89, 0.15);
+  --danger-color: #ff4d4d;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  --font-family: 'Lexend', system-ui, -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.5;
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  overflow-x: hidden;
+}
+
+html {
+  height: -webkit-fill-available;
+  overflow-x: hidden;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+a {
+  color: var(--accent-primary);
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+/* Utilities */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding-bottom: 70px;
+  overflow-x: hidden;
+  /* Space for bottom nav */
+}
+
+.screen-padding {
+  padding: 20px;
+}
+
+/* Headings */
+h1 {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+h3 {
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
