@@ -21,9 +21,10 @@ export default function Splash() {
 
     return (
         <div className="splash-container">
-            {/* The background is handled via CSS */}
-            <div className="splash-content fade-in">
-                {/* We just need an empty container for the background image to shine */}
+            <div className="splash-content">
+                <div className="logo-bloom-wrapper">
+                    <img src="/gymapp2/logo.png" alt="EVO GYM CLUB" className="splash-logo kinetic-drift-bloom" />
+                </div>
             </div>
         </div>
     );
