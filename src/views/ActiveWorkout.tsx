@@ -38,6 +38,67 @@ function Chronometer() {
     );
 }
 
+function ProgressionTable({ exerciseId }: { exerciseId: number }) {
+    const [history, setHistory] = useState<{ date: string, sets: TrackedSet[] }[]>([]);
+
+    useEffect(() => {
+        async function fetchHistory() {
+            const allSets = await db.trackedSets
+                .where('exerciseId')
+                .equals(exerciseId)
+                .toArray();
+
+            // Group by date
+            const grouped = allSets.reduce((acc, set) => {
+                if (!acc[set.date]) acc[set.date] = [];
+                acc[set.date].push(set);
+                return acc;
+            }, {} as Record<string, TrackedSet[]>);
+
+            // Sort dates descending and take last 4
+            const sortedEntries = Object.entries(grouped)
+                .sort((a, b) => b[0].localeCompare(a[0]))
+                .slice(0, 4)
+                .map(([date, sets]) => ({
+                    date,
+                    sets: sets.sort((a, b) => a.setNumber - b.setNumber)
+                }));
+
+            setHistory(sortedEntries);
+        }
+        fetchHistory();
+    }, [exerciseId]);
+
+    if (history.length === 0) return <p className="text-secondary text-xs italic">Sin historial previo.</p>;
+
+    return (
+        <div className="progression-container">
+            <table className="prog-table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>S1</th>
+                        <th>S2</th>
+                        <th>S3</th>
+                        <th>S4</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {history.map((entry, idx) => (
+                        <tr key={idx}>
+                            <td className="prog-date">{new Date(entry.date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })}</td>
+                            {[1, 2, 3, 4].map(num => {
+                                const s = entry.sets.find(s => s.setNumber === num);
+                                return <td key={num} className="prog-cell">{s ? `${s.weight}x${s.reps}` : '-'}</td>;
+                            })}
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    );
+}
+
 function ExerciseCard({ exercise }: { exercise: ExerciseLibrary }) {
     const [expanded, setExpanded] = useState(false);
     const [sets, setSets] = useState<Partial<TrackedSet>[]>([
@@ -123,13 +184,8 @@ function ExerciseCard({ exercise }: { exercise: ExerciseLibrary }) {
                     </div>
 
                     <div className="history-section">
-                        <h4 className="hist-title">Semana Anterior</h4>
-                        <div className="history-table">
-                            <div className="hist-row text-secondary">
-                                <span>Vol Total: 450kg</span>
-                                <span>Máx: 100kg x 5</span>
-                            </div>
-                        </div>
+                        <h4 className="hist-title">Progresión (Últimas 4 Sesiones)</h4>
+                        <ProgressionTable exerciseId={exercise.id!} />
                     </div>
 
                     {!isSaved && (

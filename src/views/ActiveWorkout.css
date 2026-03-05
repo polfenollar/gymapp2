@@ -212,30 +212,48 @@
     justify-content: center;
 }
 
-.history-section {
-    margin-top: 16px;
-    padding-top: 12px;
-    border-top: 1px dashed var(--border-color);
-}
-
-.hist-title {
-    font-size: 12px;
-    text-transform: uppercase;
-    color: var(--text-secondary);
-    margin-bottom: 6px;
-}
-
-.hist-row {
-    display: flex;
-    justify-content: space-between;
-    font-size: 12px;
+/* Progression Table */
+.progression-container {
+    margin-top: 8px;
     background-color: var(--bg-tertiary);
-    padding: 6px 12px;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-md);
+    padding: 8px;
+    overflow-x: auto;
 }
 
-.sm-btn {
-    padding: 12px;
-    font-size: 14px;
+.prog-table {
     width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+}
+
+.prog-table th {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 4px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.prog-table td {
+    padding: 6px 4px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 215, 0, 0.05);
+}
+
+.prog-date {
+    text-align: left !important;
+    font-weight: 600;
+    color: var(--accent-primary);
+}
+
+.prog-cell {
+    color: var(--text-primary);
+}
+
+.text-xs {
+    font-size: 12px;
+}
+
+.italic {
+    font-style: italic;
 }
