@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
 import { db, type BlockConfig } from '../services/db';
 import { Play, TrendingUp, Activity, Target } from 'lucide-react';
+import DataManagement from '../components/DataManagement';
 import './Dashboard.css';
 
 interface Metrics {
@@ -73,9 +74,12 @@ export default function Dashboard() {
                 <Target size={48} className="text-secondary mb-16" />
                 <h2>Sin Bloque Activo</h2>
                 <p className="text-center text-secondary mb-24 mt-8">Configura tu bloque de entrenamiento para ver tu panel y métricas.</p>
-                <button className="primary-btn w-full" onClick={() => navigate('/config')}>
-                    Configurar Bloque
-                </button>
+                <div style={{ width: '100%' }}>
+                    <button className="primary-btn w-full mb-24" onClick={() => navigate('/config')}>
+                        Configurar Bloque
+                    </button>
+                    <DataManagement />
+                </div>
             </div>
         );
     }
@@ -128,6 +132,11 @@ export default function Dashboard() {
                 <Play fill="currentColor" size={20} className="mr-8" />
                 Lanzar Entreno del Día
             </button>
+
+            {/* Render data management component above the bottom nav */}
+            <div style={{ paddingBottom: '80px' }}>
+                <DataManagement />
+            </div>
         </div>
     );
 }
