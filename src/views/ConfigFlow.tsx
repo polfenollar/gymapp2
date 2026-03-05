@@ -7,10 +7,34 @@ import ExerciseSelectorModal from '../components/ExerciseSelectorModal';
 import './ConfigFlow.css';
 
 const TARGETS = [
-    { id: 'Fuerza', desc: '4-8 semanas, pocas repeticiones, alta intensidad.' },
-    { id: 'Hipertrofia', desc: '6-12 semanas, repeticiones moderadas, alto volumen.' },
-    { id: 'Definición', desc: '8-16 semanas, preparación de corte.' },
-    { id: 'Recuperación', desc: '1 semana, volumen bajo, descarga.' }
+    {
+        id: 'Fuerza',
+        desc: '4-8 semanas, pocas repeticiones, alta intensidad.',
+        howToTrain: 'Foco en movimientos compuestos (Press, Sentadilla, Peso Muerto). Rango de 1-5 reps con descansos largos (3-5 min).',
+        howToRest: 'Prioriza el sueño profundo. Evita el cardio de alto impacto entre sesiones pesadas.',
+        howToEat: 'Superávit calórico ligero. Alta proteína para reparar tejido conectivo y músculo.'
+    },
+    {
+        id: 'Hipertrofia',
+        desc: '6-12 semanas, repeticiones moderadas, alto volumen.',
+        howToTrain: 'Rango de 8-12 reps. Foco en la conexión mente-músculo y tiempo bajo tensión.',
+        howToRest: '48h de descanso entre el mismo grupo muscular. Sueño de 7-9 horas.',
+        howToEat: 'Superávit calórico (250-500 kcal adicionales). Ingesta constante de carbohidratos para energía.'
+    },
+    {
+        id: 'Definición',
+        desc: '8-16 semanas, preparación de corte.',
+        howToTrain: 'Mantén la intensidad pero reduce el volumen si es necesario. Añade cardio LISS de baja intensidad.',
+        howToRest: 'Recuperación más lenta debido al déficit. El descanso es crítico para evitar el catabolismo.',
+        howToEat: 'Déficit calórico controlado. Aumenta la proteína para preservar masa muscular.'
+    },
+    {
+        id: 'Recuperación',
+        desc: '1 semana, volumen bajo, descarga.',
+        howToTrain: 'Carga al 50-60% de tu máximo. No busques el fallo. Mejora la técnica.',
+        howToRest: 'Descanso activo (estiramientos, yoga, caminatas ligeras).',
+        howToEat: 'Mantenimiento calórico. Enfoque en micronutrientes y antiinflamatorios.'
+    }
 ];
 
 export default function ConfigFlow() {
@@ -152,7 +176,7 @@ export default function ConfigFlow() {
         }
     };
 
-    const activeTargetDesc = TARGETS.find(t => t.id === target)?.desc;
+    const activeTarget = TARGETS.find(t => t.id === target);
 
     return (
         <div className="screen-padding config-container">
@@ -286,8 +310,24 @@ export default function ConfigFlow() {
                         ))}
                     </div>
                     <div className="recommendation-box">
-                        <HelpCircle size={20} className="info-icon" />
-                        <p>{activeTargetDesc}</p>
+                        <div className="flex-start mb-16">
+                            <HelpCircle size={20} className="info-icon" />
+                            <p className="font-bold">{activeTarget?.id} - Guía del Bloque</p>
+                        </div>
+                        <div className="rec-grid">
+                            <div className="rec-item">
+                                <span className="rec-label">Entrenar:</span>
+                                <p>{activeTarget?.howToTrain}</p>
+                            </div>
+                            <div className="rec-item">
+                                <span className="rec-label">Descansar:</span>
+                                <p>{activeTarget?.howToRest}</p>
+                            </div>
+                            <div className="rec-item">
+                                <span className="rec-label">Comer:</span>
+                                <p>{activeTarget?.howToEat}</p>
+                            </div>
+                        </div>
                     </div>
                     <button className="primary-btn bottom-fixed" onClick={() => setStep(2)}>
                         Siguiente <ChevronRight size={20} />

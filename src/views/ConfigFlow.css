@@ -277,3 +277,35 @@ input[type="range"] {
     min-width: 140px;
     text-align: center;
 }
+
+/* Recommendation Details */
+.rec-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.rec-item {
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.rec-label {
+    display: block;
+    color: var(--accent-primary);
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+}
+
+.font-bold {
+    font-weight: 700;
+}
+
+.flex-start {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
