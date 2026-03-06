@@ -419,11 +419,10 @@ export default function ActiveWorkout() {
                 const topbar = document.querySelector('.workout-topbar');
                 if (el && topbar) {
                     const topbarHeight = topbar.getBoundingClientRect().height;
-                    const yOffset = -topbarHeight; // Posición exacta justo debajo de la barra, ocultando la tarjeta anterior
-                    const y = el.getBoundingClientRect().top + window.scrollY + yOffset;
-                    window.scrollTo({ top: y, behavior: 'smooth' });
+                    el.style.scrollMarginTop = `${topbarHeight + 16}px`; // Ajustamos margen para el sticky header (16px extra respiración)
+                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
-            }, 450); // Mismo timeout para asegurar que la anterior colapsó
+            }, 50); // Mínimo delay, React ya habrá desmontado la tarjeta anterior
         };
 
         // Auto-advance Focus Mode to the next unfinished exercise
