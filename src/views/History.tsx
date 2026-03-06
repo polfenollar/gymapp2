@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { db, type ExerciseLibrary, type TrackedSet } from '../services/db';
 import { ArrowLeft, Calendar, Dumbbell, TrendingUp } from 'lucide-react';
+import DataManagement from '../components/DataManagement';
 import './History.css';
 
 interface WorkoutSession {
@@ -100,30 +101,62 @@ export default function History() {
                 </div>
 
                 <div className="detail-exercises">
-                    {detailGroups.map(group => (
-                        <div key={group.exercise.id} className="detail-exercise-card">
-                            <div className="detail-ex-header">
-                                <h3>{group.exercise.name}</h3>
-                                <span className="text-secondary text-sm">{group.exercise.muscleGroup}</span>
-                            </div>
-                            <div className="detail-sets-table">
-                                <div className="detail-sets-header">
-                                    <span>Serie</span>
-                                    <span>Peso</span>
-                                    <span>Reps</span>
-                                    <span>Vol</span>
+                    {detailGroups.map(group => {
+                        const isCardio = group.exercise.muscleGroup === 'Cardio y Movilidad';
+                        const isCore = group.exercise.muscleGroup === 'Core';
+                        return (
+                            <div key={group.exercise.id} className="detail-exercise-card">
+                                <div className="detail-ex-header">
+                                    <h3>{group.exercise.name}</h3>
+                                    <span className="text-secondary text-sm">{group.exercise.muscleGroup}</span>
                                 </div>
-                                {group.sets.map(set => (
-                                    <div key={set.id} className="detail-set-row">
-                                        <span className="set-num-badge">{set.setNumber}</span>
-                                        <span>{set.weight} kg</span>
-                                        <span>× {set.reps}</span>
-                                        <span className="text-accent">{set.weight * set.reps} kg</span>
-                                    </div>
-                                ))}
+                                <div className="detail-sets-table">
+                                    {isCardio ? (
+                                        <>
+                                            <div className="detail-sets-header">
+                                                <span>Duración</span>
+                                            </div>
+                                            {group.sets.map(set => (
+                                                <div key={set.id} className="detail-set-row">
+                                                    <span className="text-accent">{set.reps} min</span>
+                                                </div>
+                                            ))}
+                                        </>
+                                    ) : isCore ? (
+                                        <>
+                                            <div className="detail-sets-header">
+                                                <span>Serie</span>
+                                                <span>Reps</span>
+                                            </div>
+                                            {group.sets.map(set => (
+                                                <div key={set.id} className="detail-set-row">
+                                                    <span className="set-num-badge">{set.setNumber}</span>
+                                                    <span>{set.reps} reps</span>
+                                                </div>
+                                            ))}
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div className="detail-sets-header">
+                                                <span>Serie</span>
+                                                <span>Peso</span>
+                                                <span>Reps</span>
+                                                <span>Vol</span>
+                                            </div>
+                                            {group.sets.map(set => (
+                                                <div key={set.id} className="detail-set-row">
+                                                    <span className="set-num-badge">{set.setNumber}</span>
+                                                    <span>{set.weight} kg</span>
+                                                    <span>× {set.reps}</span>
+                                                    <span className="text-accent">{set.weight * set.reps} kg</span>
+                                                </div>
+                                            ))}
+                                        </>
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
         );
@@ -132,7 +165,9 @@ export default function History() {
     // History list view
     return (
         <div className="screen-padding history-container fade-in">
-            <h1>Historial de Entrenamientos</h1>
+            <DataManagement />
+
+            <h1 style={{ marginTop: '24px' }}>Historial de Entrenamientos</h1>
             <p className="subtitle">Revisa tus sesiones de entrenamiento anteriores.</p>
 
             {sessions.length === 0 ? (

@@ -68,8 +68,10 @@ function RestTimer() {
         </div>
     );
 }
-function ProgressionTable({ exerciseId }: { exerciseId: number }) {
+function ProgressionTable({ exerciseId, muscleGroup }: { exerciseId: number, muscleGroup?: string }) {
     const [history, setHistory] = useState<{ date: string, sets: TrackedSet[] }[]>([]);
+    const isCardio = muscleGroup === 'Cardio y Movilidad';
+    const isCore = muscleGroup === 'Core';
 
     useEffect(() => {
         async function fetchHistory() {
@@ -101,6 +103,58 @@ function ProgressionTable({ exerciseId }: { exerciseId: number }) {
 
     if (history.length === 0) return <p className="text-secondary text-xs italic">Sin historial previo.</p>;
 
+    if (isCardio) {
+        return (
+            <div className="progression-container">
+                <table className="prog-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Duración</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {history.map((entry, idx) => (
+                            <tr key={idx}>
+                                <td className="prog-date">{new Date(entry.date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })}</td>
+                                <td className="prog-cell">{entry.sets[0] ? `${entry.sets[0].reps}min` : '-'}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        );
+    }
+
+    if (isCore) {
+        return (
+            <div className="progression-container">
+                <table className="prog-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>S1</th>
+                            <th>S2</th>
+                            <th>S3</th>
+                            <th>S4</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {history.map((entry, idx) => (
+                            <tr key={idx}>
+                                <td className="prog-date">{new Date(entry.date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })}</td>
+                                {[1, 2, 3, 4].map(num => {
+                                    const s = entry.sets.find(s => s.setNumber === num);
+                                    return <td key={num} className="prog-cell">{s ? `${s.reps}` : '-'}</td>;
+                                })}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        );
+    }
+
     return (
         <div className="progression-container">
             <table className="prog-table">
@@ -131,12 +185,19 @@ function ProgressionTable({ exerciseId }: { exerciseId: number }) {
 
 function ExerciseCard({ exercise }: { exercise: ExerciseLibrary }) {
     const [expanded, setExpanded] = useState(false);
-    const [sets, setSets] = useState<Partial<TrackedSet>[]>([
-        { setNumber: 1, weight: 0, reps: 0, completed: false },
-        { setNumber: 2, weight: 0, reps: 0, completed: false },
-        { setNumber: 3, weight: 0, reps: 0, completed: false },
-        { setNumber: 4, weight: 0, reps: 0, completed: false }
-    ]);
+    const isCardio = exercise.muscleGroup === 'Cardio y Movilidad';
+    const isCore = exercise.muscleGroup === 'Core';
+
+    const initialSets = isCardio
+        ? [{ setNumber: 1, weight: 0, reps: 0, completed: false }]
+        : [
+            { setNumber: 1, weight: 0, reps: 0, completed: false },
+            { setNumber: 2, weight: 0, reps: 0, completed: false },
+            { setNumber: 3, weight: 0, reps: 0, completed: false },
+            { setNumber: 4, weight: 0, reps: 0, completed: false }
+        ];
+
+    const [sets, setSets] = useState<Partial<TrackedSet>[]>(initialSets);
     const [isSaved, setIsSaved] = useState(false);
 
     const updateSet = (index: number, field: 'weight' | 'reps', value: string) => {
@@ -145,14 +206,11 @@ function ExerciseCard({ exercise }: { exercise: ExerciseLibrary }) {
         setSets(newSets);
     };
 
-    // TrackedSets don't strictly need a UI toggle if we just save whatever has input
     const saveExercise = async () => {
         const today = new Date().toISOString().split('T')[0];
-        // Only save sets that actually have some weight or reps logged
         const completedSets = sets.filter(s => (s.weight && s.weight > 0) || (s.reps && s.reps > 0));
 
         if (completedSets.length === 0) {
-            // If they click save without anything, just close it or pretend saved
             setIsSaved(true);
             setTimeout(() => setExpanded(false), 500);
             return;
@@ -186,35 +244,74 @@ function ExerciseCard({ exercise }: { exercise: ExerciseLibrary }) {
                 <div className="exercise-body">
                     <p className="ex-desc">{exercise.description}</p>
                     <div className="sets-container">
-                        <div className="sets-header">
-                            <span>Set</span>
-                            <span>kg</span>
-                            <span>Reps</span>
-                        </div>
-                        {sets.map((set, idx) => (
-                            <div key={idx} className="set-row">
-                                <span className="set-num">{set.setNumber}</span>
-                                <input
-                                    type="number"
-                                    className="set-input"
-                                    value={set.weight || ''}
-                                    onChange={(e) => updateSet(idx, 'weight', e.target.value)}
-                                    placeholder="0"
-                                />
-                                <input
-                                    type="number"
-                                    className="set-input"
-                                    value={set.reps || ''}
-                                    onChange={(e) => updateSet(idx, 'reps', e.target.value)}
-                                    placeholder="0"
-                                />
-                            </div>
-                        ))}
+                        {isCardio ? (
+                            <>
+                                <div className="sets-header">
+                                    <span>Duración (min)</span>
+                                </div>
+                                <div className="set-row">
+                                    <input
+                                        type="number"
+                                        className="set-input"
+                                        style={{ flex: 1 }}
+                                        value={sets[0].reps || ''}
+                                        onChange={(e) => updateSet(0, 'reps', e.target.value)}
+                                        placeholder="0"
+                                    />
+                                </div>
+                            </>
+                        ) : isCore ? (
+                            <>
+                                <div className="sets-header">
+                                    <span>Set</span>
+                                    <span>Reps</span>
+                                </div>
+                                {sets.map((set, idx) => (
+                                    <div key={idx} className="set-row">
+                                        <span className="set-num">{set.setNumber}</span>
+                                        <input
+                                            type="number"
+                                            className="set-input"
+                                            value={set.reps || ''}
+                                            onChange={(e) => updateSet(idx, 'reps', e.target.value)}
+                                            placeholder="0"
+                                        />
+                                    </div>
+                                ))}
+                            </>
+                        ) : (
+                            <>
+                                <div className="sets-header">
+                                    <span>Set</span>
+                                    <span>kg</span>
+                                    <span>Reps</span>
+                                </div>
+                                {sets.map((set, idx) => (
+                                    <div key={idx} className="set-row">
+                                        <span className="set-num">{set.setNumber}</span>
+                                        <input
+                                            type="number"
+                                            className="set-input"
+                                            value={set.weight || ''}
+                                            onChange={(e) => updateSet(idx, 'weight', e.target.value)}
+                                            placeholder="0"
+                                        />
+                                        <input
+                                            type="number"
+                                            className="set-input"
+                                            value={set.reps || ''}
+                                            onChange={(e) => updateSet(idx, 'reps', e.target.value)}
+                                            placeholder="0"
+                                        />
+                                    </div>
+                                ))}
+                            </>
+                        )}
                     </div>
 
                     <div className="history-section">
                         <h4 className="hist-title">Progresión (Últimas 4 Sesiones)</h4>
-                        <ProgressionTable exerciseId={exercise.id!} />
+                        <ProgressionTable exerciseId={exercise.id!} muscleGroup={exercise.muscleGroup} />
                     </div>
 
                     <div className="exercise-card-actions mt-16">
