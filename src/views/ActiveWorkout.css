@@ -109,6 +109,8 @@
     flex-direction: column;
     gap: 16px;
     margin-bottom: 90px;
+    padding-bottom: 50vh;
+    /* Ensures the last card can reach the top below the header */
 }
 
 .exercise-card {
