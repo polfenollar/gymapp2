@@ -258,12 +258,13 @@
 
 .exercise-card-actions {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     border-top: 1px solid var(--border-color);
     padding-top: 16px;
     margin-top: 16px;
-    gap: 12px;
+    gap: 16px;
+    flex-wrap: wrap;
 }
 
 /* Progression Table */

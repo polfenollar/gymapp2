@@ -51,11 +51,11 @@ function RestTimer() {
 
     return (
         <div className="chronometer">
-            <button onClick={() => adjustTime(-30)} className="chrono-adj-btn">-</button>
+            <button onClick={() => adjustTime(-15)} className="chrono-adj-btn">-</button>
             <div className={`time-display ${timeLeft === 0 ? 'time-finished' : ''}`} onClick={toggle}>
                 {format(timeLeft)}
             </div>
-            <button onClick={() => adjustTime(30)} className="chrono-adj-btn">+</button>
+            <button onClick={() => adjustTime(15)} className="chrono-adj-btn">+</button>
 
             <div className="chrono-controls" style={{ marginLeft: '12px' }}>
                 <button onClick={toggle} className="chrono-btn">
