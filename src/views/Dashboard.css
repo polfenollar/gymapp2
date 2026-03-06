@@ -1,7 +1,6 @@
 .dashboard-container {
     display: flex;
     flex-direction: column;
-    height: 100%;
 }
 
 .flex-center {
@@ -16,6 +15,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
 .empty-state {
