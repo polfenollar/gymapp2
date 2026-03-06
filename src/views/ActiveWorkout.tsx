@@ -240,7 +240,7 @@ function ExerciseCard({
     };
 
     return (
-        <div className={`exercise-card ${isExpanded ? 'expanded' : ''} ${isSaved ? 'saved completed-glow' : ''}`}>
+        <div id={`exercise-${exercise.id}`} className={`exercise-card ${isExpanded ? 'expanded' : ''} ${isSaved ? 'saved completed-glow' : ''}`}>
             <div className="exercise-header" onClick={onToggle}>
                 <div className="ex-info">
                     <h3>{exercise.name}</h3>
@@ -401,12 +401,24 @@ export default function ActiveWorkout() {
             return next;
         });
 
+        const scrollToNext = (nextId: number) => {
+            setTimeout(() => {
+                const el = document.getElementById(`exercise-${nextId}`);
+                if (el) {
+                    const yOffset = -140; // Space for the topbar + margin
+                    const y = el.getBoundingClientRect().top + window.scrollY + yOffset;
+                    window.scrollTo({ top: y, behavior: 'smooth' });
+                }
+            }, 300); // Wait for the transition
+        };
+
         // Auto-advance Focus Mode to the next unfinished exercise
         const idx = exercises.findIndex(e => e.id === exId);
         if (idx !== -1) {
             for (let i = idx + 1; i < exercises.length; i++) {
                 if (!completedExIds.has(exercises[i].id!)) {
                     setExpandedExId(exercises[i].id!);
+                    scrollToNext(exercises[i].id!);
                     return;
                 }
             }
@@ -414,6 +426,7 @@ export default function ActiveWorkout() {
             for (let i = 0; i < idx; i++) {
                 if (!completedExIds.has(exercises[i].id!)) {
                     setExpandedExId(exercises[i].id!);
+                    scrollToNext(exercises[i].id!);
                     return;
                 }
             }
@@ -470,18 +483,23 @@ export default function ActiveWorkout() {
                 )}
             </div>
 
-            {isFullyCompleted ? (
-                <div className="completion-banner fade-in mt-24 mb-32" style={{ textAlign: 'center' }}>
-                    <div style={{ display: 'inline-flex', padding: '16px', borderRadius: '50%', background: 'rgba(237, 179, 89, 0.2)', marginBottom: '16px', color: 'var(--accent-primary)' }}>
-                        <Trophy size={48} />
+            {isFullyCompleted && (
+                <div className="glass-modal-overlay fade-in">
+                    <div className="glass-modal">
+                        <div className="modal-icon" style={{ display: 'inline-flex', padding: '16px', borderRadius: '50%', background: 'rgba(237, 179, 89, 0.1)', marginBottom: '16px' }}>
+                            <Trophy size={48} className="text-accent" />
+                        </div>
+                        <h2 style={{ color: '#fff', marginBottom: '8px', fontSize: '24px', letterSpacing: '1px' }}>ENTRENAMIENTO<br />COMPLETADO</h2>
+                        <div className="text-secondary mt-16 mb-24" style={{ fontSize: '15px' }}>
+                            <p style={{ margin: '0 0 8px 0' }}>¡Excelente trabajo hoy!</p>
+                            <p style={{ margin: 0 }}>Ejercicios: {exercises.length}</p>
+                        </div>
+                        <button className="primary-btn w-full action-glow" onClick={() => navigate('/dashboard')} style={{ background: 'linear-gradient(90deg, rgba(212,152,62,0.85) 0%, rgba(237,179,89,1) 100%)', color: '#121212', height: '54px', fontSize: '16px' }}>
+                            GUARDAR SESIÓN
+                        </button>
                     </div>
-                    <h2 style={{ color: 'var(--accent-primary)', marginBottom: '8px' }}>¡Entrenamiento Completado!</h2>
-                    <p className="text-secondary mb-24">Gran trabajo. Guarda la sesión y descansa, te lo has ganado.</p>
-                    <button className="primary-btn bottom-fixed action-glow main-cta" onClick={() => navigate('/dashboard')} style={{ background: 'linear-gradient(90deg, #d4983e 0%, var(--accent-primary) 100%)', color: '#121212' }}>
-                        Guardar y Volver
-                    </button>
                 </div>
-            ) : null}
+            )}
         </div>
     );
 }
