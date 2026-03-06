@@ -65,59 +65,124 @@ export class GymDatabase extends Dexie {
 export const db = new GymDatabase();
 
 export async function populateInitialExercises() {
-    const count = await db.exerciseLibrary.count();
-    if (count === 0) {
-        await db.exerciseLibrary.bulkAdd([
-            // 1. Tren Inferior (Piernas y Glúteos)
-            { name: 'Sentadilla con barra (High Bar)', description: 'Controlada, sin bajar de los 90° si hay molestias.', muscleGroup: 'Piernas y Glúteos' },
-            { name: 'Zancadas búlgaras (Sentadilla Búlgara)', description: 'El ejercicio estrella para tu caso; se puede hacer con técnica de 1.5 reps.', muscleGroup: 'Piernas y Glúteos' },
-            { name: 'Step-Up Explosivo (Cajón alto)', description: 'Subida rápida, bajada lenta (3 seg).', muscleGroup: 'Piernas y Glúteos' },
-            { name: 'Sentadilla Goblet', description: 'Con mancuerna al pecho, pausa abajo de 2 seg e isometría final.', muscleGroup: 'Piernas y Glúteos' },
-            { name: 'Extensión de cuádriceps', description: 'En máquina, buscando el fallo metabólico (ardor).', muscleGroup: 'Piernas y Glúteos' },
-            { name: 'Peso muerto rumano (con mancuernas)', description: 'Rango corto (hasta la rodilla) para proteger L5-S1.', muscleGroup: 'Piernas y Glúteos' },
-            { name: 'Curl femoral', description: 'Aislamiento de isquios (sentado o tumbado).', muscleGroup: 'Piernas y Glúteos' },
-            { name: 'Hip Thrust (Empuje de cadera)', description: 'Fundamental para fortalecer glúteos y estabilizar la pelvis.', muscleGroup: 'Piernas y Glúteos' },
-            { name: 'Aducciones en máquina', description: 'Para estabilidad lateral en el pádel.', muscleGroup: 'Piernas y Glúteos' },
-            { name: 'Gemelos', description: 'Elevación de talones (de pie o sentado).', muscleGroup: 'Piernas y Glúteos' },
-            { name: 'Tibial anterior', description: 'Elevación de puntas (salud de rodilla).', muscleGroup: 'Piernas y Glúteos' },
-            { name: 'Hiperextensiones a 45°', description: 'Foco en glúteos, sin arquear la zona lumbar.', muscleGroup: 'Piernas y Glúteos' },
+    const existing = await db.exerciseLibrary.toArray();
+    const existingNames = new Set(existing.map(e => e.name.toLowerCase().trim()));
 
-            // 2. Empuje (Pecho, Hombros y Tríceps)
-            { name: 'Press de Banca (Barra)', description: 'Tu ejercicio de fuerza base.', muscleGroup: 'Pecho, Hombros y Tríceps' },
-            { name: 'Press inclinado (Mancuernas)', description: 'Para la parte superior del pecho.', muscleGroup: 'Pecho, Hombros y Tríceps' },
-            { name: 'Press Militar sentado (Mancuernas)', description: 'Más seguro para tu hernia que la barra de pie.', muscleGroup: 'Pecho, Hombros y Tríceps' },
-            { name: 'Press Arnold', description: 'Rotación que trabaja todas las caras del deltoides.', muscleGroup: 'Pecho, Hombros y Tríceps' },
-            { name: 'Elevaciones laterales (Mancuernas o polea)', description: 'Variantes de pie, sentado y con drop-sets.', muscleGroup: 'Pecho, Hombros y Tríceps' },
-            { name: 'Cruces en polea', description: 'Trabajo de detalle para el pectoral.', muscleGroup: 'Pecho, Hombros y Tríceps' },
-            { name: 'Fondos en paralelas', description: 'Trabajo de tríceps y pecho inferior.', muscleGroup: 'Pecho, Hombros y Tríceps' },
-            { name: 'Extensión de tríceps', description: 'Polea con cuerda - Aislamiento de tríceps.', muscleGroup: 'Pecho, Hombros y Tríceps' },
-            { name: 'Press francés', description: 'Sugerido hacerlo en el suelo para mayor seguridad lumbar.', muscleGroup: 'Pecho, Hombros y Tríceps' },
-            { name: 'Flexiones explosivas (con palmada)', description: 'Ejercicio de potencia/contraste.', muscleGroup: 'Pecho, Hombros y Tríceps' },
+    const masterList = [
+        // Pecho
+        { name: 'Press de banca barra', description: 'Empuje horizontal con barra para fuerza máxima.', muscleGroup: 'Pecho' },
+        { name: 'Press de banca mancuernas', description: 'Empuje con mayor rango de movimiento.', muscleGroup: 'Pecho' },
+        { name: 'Press inclinado mancuernas', description: 'Enfocado en la parte superior del pectoral.', muscleGroup: 'Pecho' },
+        { name: 'Press inclinado barra', description: 'Empuje pesado para el pectoral superior.', muscleGroup: 'Pecho' },
+        { name: 'Press declinado barra', description: 'Enfocado en la parte inferior del pecho.', muscleGroup: 'Pecho' },
+        { name: 'Press declinado mancuernas', description: 'Empuje inferior con mayor libertad de movimiento.', muscleGroup: 'Pecho' },
+        { name: 'Cruces en poleas', description: 'Aislamiento constante mediante tensión por cables.', muscleGroup: 'Pecho' },
+        { name: 'Aperturas con mancuernas', description: 'Estiramiento pectoral con peso libre.', muscleGroup: 'Pecho' },
+        { name: 'Aperturas Peck Deck', description: 'Aislamiento pectoral asistido en máquina.', muscleGroup: 'Pecho' },
+        { name: 'Fondos en paralelas', description: 'Empuje de peso corporal para pecho inferior.', muscleGroup: 'Pecho' },
+        { name: 'Fondos en máquina', description: 'Fondos asistidos para control del movimiento.', muscleGroup: 'Pecho' },
+        { name: 'Flexiones de brazos', description: 'Empuje básico contra el suelo.', muscleGroup: 'Pecho' },
+        { name: 'Press máquina convergente', description: 'Empuje guiado con arco de movimiento natural.', muscleGroup: 'Pecho' },
+        { name: 'Pull-over con mancuerna', description: 'Expansión torácica y trabajo de serrato.', muscleGroup: 'Pecho' },
 
-            // 3. Tracción (Espalda y Bíceps)
-            { name: 'Dominadas estrictas', description: 'Ahora con fase excéntrica lenta.', muscleGroup: 'Espalda y Bíceps' },
-            { name: 'Remo en polea baja (Gironda)', description: 'Agarre neutro, torso inmóvil.', muscleGroup: 'Espalda y Bíceps' },
-            { name: 'Remo con mancuerna a una mano', description: 'Apoyado en banco (máxima seguridad para L5-S1).', muscleGroup: 'Espalda y Bíceps' },
-            { name: 'Jalón al pecho', description: 'Amplitud de espalda (ancho o unilateral).', muscleGroup: 'Espalda y Bíceps' },
-            { name: 'Pullover en polea alta', description: 'Brazos rectos - normal o explosiva para potencia.', muscleGroup: 'Espalda y Bíceps' },
-            { name: 'Face Pulls', description: 'El ejercicio más importante para la salud de tus hombros.', muscleGroup: 'Espalda y Bíceps' },
-            { name: 'Pájaros', description: 'Deltoide posterior (Sentado o en máquina), para redondear el hombro.', muscleGroup: 'Espalda y Bíceps' },
-            { name: 'Curl de bíceps', description: 'Diferentes ángulos para el bíceps (Barra Z / Mancuernas / Inclinado).', muscleGroup: 'Espalda y Bíceps' },
-            { name: 'Curl Martillo', description: 'Para el braquial y antebrazo (agarre de la pala).', muscleGroup: 'Espalda y Bíceps' },
+        // Espalda
+        { name: 'Remo polea baja Gironda', description: 'Tracción horizontal para densidad de espalda.', muscleGroup: 'Espalda' },
+        { name: 'Remo mancuerna una mano', description: 'Trabajo unilateral para corregir asimetrías.', muscleGroup: 'Espalda' },
+        { name: 'Jalón al pecho ancho', description: 'Tracción vertical para amplitud de espalda.', muscleGroup: 'Espalda' },
+        { name: 'Jalón al pecho unilateral', description: 'Jalón enfocado en conexión mente-músculo individual.', muscleGroup: 'Espalda' },
+        { name: 'Pullover polea alta normal', description: 'Aislamiento del dorsal con brazos rectos.', muscleGroup: 'Espalda' },
+        { name: 'Pullover polea alta explosivo', description: 'Trabajo de potencia en la fase concéntrica.', muscleGroup: 'Espalda' },
+        { name: 'Dominadas agarre ancho', description: 'Tracción vertical exigente para espalda ancha.', muscleGroup: 'Espalda' },
+        { name: 'Dominadas agarre estrecho', description: 'Enfocadas en la parte central del dorsal.', muscleGroup: 'Espalda' },
+        { name: 'Dominadas agarre supino', description: 'Tracción vertical con gran ayuda del bíceps.', muscleGroup: 'Espalda' },
+        { name: 'Remo barra 90 grados', description: 'Remo pesado para grosor total de espalda.', muscleGroup: 'Espalda' },
+        { name: 'Remo barra 45 grados', description: 'Variante más cómoda para la zona lumbar.', muscleGroup: 'Espalda' },
+        { name: 'Remo en punta (T)', description: 'Remo estable para cargar mucho peso.', muscleGroup: 'Espalda' },
+        { name: 'Peso muerto convencional', description: 'Movimiento de fuerza total para cadena posterior.', muscleGroup: 'Espalda' },
+        { name: 'Peso muerto sumo', description: 'Postura ancha con menor estrés lumbar.', muscleGroup: 'Espalda' },
+        { name: 'Hiperextensiones lumbares', description: 'Fortalecimiento específico de la baja espalda.', muscleGroup: 'Espalda' },
+        { name: 'Encogimientos de hombros', description: 'Aislamiento para el músculo trapecio.', muscleGroup: 'Espalda' },
 
-            // 4. Core y Salud de la Columna
-            { name: 'Dead Bug', description: 'Control motor y estabilización lumbar.', muscleGroup: 'Core' },
-            { name: 'Bird-Dog', description: 'Estabilidad cruzada de la columna.', muscleGroup: 'Core' },
-            { name: 'Press Pallof', description: 'Anti-rotación, vital para transferir fuerza en el pádel.', muscleGroup: 'Core' },
-            { name: 'Plancha (Plank) y Plancha Lateral', description: 'Resistencia del core.', muscleGroup: 'Core' },
-            { name: 'Giros Rusos (Russian Twists)', description: 'Realizados de forma muy lenta y controlada.', muscleGroup: 'Core' },
+        // Piernas
+        { name: 'Extensión de cuádriceps', description: 'Aislamiento puro del cuádriceps en máquina.', muscleGroup: 'Piernas' },
+        { name: 'Peso muerto rumano mancuernas', description: 'Estiramiento de femorales con mayor control.', muscleGroup: 'Piernas' },
+        { name: 'Peso muerto rumano barra', description: 'Carga pesada para isquiotibiales y glúteos.', muscleGroup: 'Piernas' },
+        { name: 'Peso muerto piernas rígidas', description: 'Máximo estiramiento de la cadena posterior.', muscleGroup: 'Piernas' },
+        { name: 'Curl femoral sentado', description: 'Aislamiento de isquios con cadera estable.', muscleGroup: 'Piernas' },
+        { name: 'Curl femoral tumbado', description: 'Trabajo de flexión de rodilla para isquios.', muscleGroup: 'Piernas' },
+        { name: 'Gemelos de pie', description: 'Extensión de tobillo para el gastrocnemio.', muscleGroup: 'Piernas' },
+        { name: 'Gemelos sentado', description: 'Enfocado principalmente en el músculo sóleo.', muscleGroup: 'Piernas' },
+        { name: 'Tibial anterior', description: 'Fortalecimiento de la parte delantera de espinilla.', muscleGroup: 'Piernas' },
+        { name: 'Sentadillas traseras', description: 'El ejercicio rey para pierna completa.', muscleGroup: 'Piernas' },
+        { name: 'Sentadillas frontales', description: 'Mayor énfasis en cuádriceps y core vertical.', muscleGroup: 'Piernas' },
+        { name: 'Sentadillas goblet', description: 'Sentadilla con peso frontal para mejorar técnica.', muscleGroup: 'Piernas' },
+        { name: 'Prensa de piernas inclinada', description: 'Empuje pesado de pierna con espalda apoyada.', muscleGroup: 'Piernas' },
+        { name: 'Prensa de piernas horizontal', description: 'Movimiento guiado para menor presión lumbar.', muscleGroup: 'Piernas' },
+        { name: 'Zancadas (Lunges)', description: 'Trabajo unilateral para estabilidad y piernas.', muscleGroup: 'Piernas' },
+        { name: 'Sentadilla Búlgara', description: 'Sentadilla unilateral con pie trasero elevado.', muscleGroup: 'Piernas' },
+        { name: 'Sentadilla Hack', description: 'Sentadilla guiada con apoyo dorsal fijo.', muscleGroup: 'Piernas' },
+        { name: 'Aducciones en máquina', description: 'Trabajo de la cara interna del muslo.', muscleGroup: 'Piernas' },
+        { name: 'Abducciones en máquina', description: 'Aislamiento del glúteo medio y cadera.', muscleGroup: 'Piernas' },
 
-            // 5. Cardio, Potencia y Movilidad
-            { name: 'LISS (Caminata/Elíptica)', description: '20 min - Caminata con inclinación o elíptica.', muscleGroup: 'Cardio y Movilidad' },
-            { name: 'HIIT (Bici estática)', description: '10-15 min - 30" sprint / 30" suave.', muscleGroup: 'Cardio y Movilidad' },
-            { name: 'Saltos verticales', description: 'Amortiguando bien la caída (potencia).', muscleGroup: 'Cardio y Movilidad' },
-            { name: 'Movilidad 90/90', description: 'Para la cadera.', muscleGroup: 'Cardio y Movilidad' },
-            { name: 'Movilidad Torácica', description: 'Para liberar tensión de la espalda baja.', muscleGroup: 'Cardio y Movilidad' }
-        ]);
+        // Hombros
+        { name: 'Press Arnold', description: 'Press rotativo para todas las cabezas del hombro.', muscleGroup: 'Hombros' },
+        { name: 'Face Pulls', description: 'Salud del hombro y deltoide posterior.', muscleGroup: 'Hombros' },
+        { name: 'Pájaros con mancuernas', description: 'Aislamiento del deltoide posterior inclinado.', muscleGroup: 'Hombros' },
+        { name: 'Press militar barra', description: 'Empuje vertical pesado de pie.', muscleGroup: 'Hombros' },
+        { name: 'Press militar mancuernas', description: 'Empuje vertical con mayor libertad articular.', muscleGroup: 'Hombros' },
+        { name: 'Elevaciones laterales mancuernas', description: 'Aislamiento para ensanchar los hombros.', muscleGroup: 'Hombros' },
+        { name: 'Elevaciones laterales poleas', description: 'Tensión constante en la parte lateral.', muscleGroup: 'Hombros' },
+        { name: 'Elevaciones frontales mancuernas', description: 'Aislamiento del deltoide anterior.', muscleGroup: 'Hombros' },
+        { name: 'Elevaciones frontales barra', description: 'Trabajo frontal simétrico con barra.', muscleGroup: 'Hombros' },
+        { name: 'Elevaciones frontales disco', description: 'Movimiento frontal simple con agarre neutro.', muscleGroup: 'Hombros' },
+        { name: 'Remo al mentón', description: 'Tracción vertical para hombro y trapecio.', muscleGroup: 'Hombros' },
+
+        // Brazos
+        { name: 'Extensión tríceps cuerda', description: 'Aislamiento de tríceps con apertura final.', muscleGroup: 'Brazos' },
+        { name: 'Extensión tríceps barra', description: 'Empuje rígido para fuerza en tríceps.', muscleGroup: 'Brazos' },
+        { name: 'Press francés barra Z', description: 'Extensión de codo clásica para tríceps.', muscleGroup: 'Brazos' },
+        { name: 'Press francés mancuernas', description: 'Extensión de tríceps con agarre neutro.', muscleGroup: 'Brazos' },
+        { name: 'Curl bíceps barra Z', description: 'Flexión de codo cómoda para muñecas.', muscleGroup: 'Brazos' },
+        { name: 'Curl bíceps mancuernas', description: 'Trabajo alterno de bíceps con supinación.', muscleGroup: 'Brazos' },
+        { name: 'Curl bíceps inclinado', description: 'Máximo estiramiento de la cabeza larga.', muscleGroup: 'Brazos' },
+        { name: 'Curl bíceps barra recta', description: 'Máxima tensión en la flexión del bíceps.', muscleGroup: 'Brazos' },
+        { name: 'Curl Martillo', description: 'Enfocado en braquial y antebrazo.', muscleGroup: 'Brazos' },
+        { name: 'Curl concentrado', description: 'Aislamiento máximo del pico del bíceps.', muscleGroup: 'Brazos' },
+        { name: 'Curl banco Scott', description: 'Aislamiento evitando el balanceo del cuerpo.', muscleGroup: 'Brazos' },
+        { name: 'Press banca agarre cerrado', description: 'Empuje de pecho enfocado en tríceps.', muscleGroup: 'Brazos' },
+        { name: 'Patada de tríceps', description: 'Extensión final de codo con mancuerna.', muscleGroup: 'Brazos' },
+        { name: 'Fondos entre bancos', description: 'Empuje de peso corporal para tríceps.', muscleGroup: 'Brazos' },
+
+        // Glúteos y Lumbar
+        { name: 'Hip Thrust', description: 'El mejor ejercicio para glúteo mayor.', muscleGroup: 'Glúteos y Lumbar' },
+        { name: 'Hiperextensiones a 45°', description: 'Fortalece lumbar, glúteos e isquios.', muscleGroup: 'Glúteos y Lumbar' },
+        { name: 'Puente de glúteo', description: 'Extensión de cadera en el suelo.', muscleGroup: 'Glúteos y Lumbar' },
+        { name: 'Patada de glúteo polea', description: 'Aislamiento analítico de glúteo en cable.', muscleGroup: 'Glúteos y Lumbar' },
+        { name: 'Patada de glúteo máquina', description: 'Movimiento guiado de extensión de cadera.', muscleGroup: 'Glúteos y Lumbar' },
+        { name: 'Clamshells', description: 'Activación del glúteo medio en el suelo.', muscleGroup: 'Glúteos y Lumbar' },
+        { name: 'Step-up', description: 'Subida a plataforma para fuerza unilateral.', muscleGroup: 'Glúteos y Lumbar' },
+
+        // Core
+        { name: 'Dead Bug', description: 'Estabilidad lumbo-pélvica y control abdominal.', muscleGroup: 'Core' },
+        { name: 'Bird-Dog', description: 'Estabilidad cruzada de core y espalda.', muscleGroup: 'Core' },
+        { name: 'Plancha abdominal', description: 'Resistencia isométrica de toda la faja abdominal.', muscleGroup: 'Core' },
+        { name: 'Plancha Lateral', description: 'Trabajo isométrico de oblicuos y cadera.', muscleGroup: 'Core' },
+        { name: 'Giros Rusos', description: 'Rotación de tronco para trabajo de oblicuos.', muscleGroup: 'Core' },
+        { name: 'Crunch abdominal', description: 'Flexión de columna para recto abdominal.', muscleGroup: 'Core' },
+        { name: 'Elevación piernas suelo', description: 'Trabajo de la zona abdominal inferior.', muscleGroup: 'Core' },
+        { name: 'Elevación piernas colgado', description: 'Ejercicio avanzado de core y flexores.', muscleGroup: 'Core' },
+        { name: 'Rueda abdominal', description: 'Extensión de core de alta intensidad.', muscleGroup: 'Core' },
+
+        // Cardio / Movilidad
+        { name: 'LISS', description: 'Cardio de baja intensidad y larga duración.', muscleGroup: 'Cardio y Movilidad' },
+        { name: 'HIIT', description: 'Intervalos de alta intensidad para quemar grasa.', muscleGroup: 'Cardio y Movilidad' },
+        { name: 'Saltos verticales', description: 'Entrenamiento de potencia explosiva para piernas.', muscleGroup: 'Cardio y Movilidad' },
+        { name: 'Movilidad 90/90', description: 'Apertura de cadera y rotación interna/externa.', muscleGroup: 'Cardio y Movilidad' },
+        { name: 'Movilidad Torácica', description: 'Mejora la extensión y rotación de espalda.', muscleGroup: 'Cardio y Movilidad' }
+    ];
+
+    const toAdd = masterList.filter(e => !existingNames.has(e.name.toLowerCase().trim()));
+    if (toAdd.length > 0) {
+        await db.exerciseLibrary.bulkAdd(toAdd);
     }
 }
