@@ -183,8 +183,17 @@ function ProgressionTable({ exerciseId, muscleGroup }: { exerciseId: number, mus
     );
 }
 
-function ExerciseCard({ exercise }: { exercise: ExerciseLibrary }) {
-    const [expanded, setExpanded] = useState(false);
+function ExerciseCard({
+    exercise,
+    isExpanded,
+    onToggle,
+    onComplete
+}: {
+    exercise: ExerciseLibrary,
+    isExpanded: boolean,
+    onToggle: () => void,
+    onComplete: () => void
+}) {
     const isCardio = exercise.muscleGroup === 'Cardio y Movilidad';
     const isCore = exercise.muscleGroup === 'Core';
 
@@ -212,7 +221,7 @@ function ExerciseCard({ exercise }: { exercise: ExerciseLibrary }) {
 
         if (completedSets.length === 0) {
             setIsSaved(true);
-            setTimeout(() => setExpanded(false), 500);
+            onComplete();
             return;
         }
 
@@ -227,12 +236,12 @@ function ExerciseCard({ exercise }: { exercise: ExerciseLibrary }) {
             });
         }
         setIsSaved(true);
-        setTimeout(() => setExpanded(false), 500);
+        onComplete();
     };
 
     return (
-        <div className={`exercise-card ${expanded ? 'expanded' : ''} ${isSaved ? 'saved' : ''}`}>
-            <div className="exercise-header" onClick={() => setExpanded(!expanded)}>
+        <div className={`exercise-card ${isExpanded ? 'expanded' : ''} ${isSaved ? 'saved completed-glow' : ''}`}>
+            <div className="exercise-header" onClick={onToggle}>
                 <div className="ex-info">
                     <h3>{exercise.name}</h3>
                     <span className="ex-muscle">{exercise.muscleGroup}</span>
@@ -240,7 +249,7 @@ function ExerciseCard({ exercise }: { exercise: ExerciseLibrary }) {
                 {isSaved ? <Trophy size={20} className="text-accent" /> : <div className="indicator" />}
             </div>
 
-            {expanded && (
+            {isExpanded && (
                 <div className="exercise-body">
                     <p className="ex-desc">{exercise.description}</p>
                     <div className="sets-container">
@@ -334,6 +343,10 @@ export default function ActiveWorkout() {
     const [exercises, setExercises] = useState<ExerciseLibrary[]>([]);
     const [currentWeek, setCurrentWeek] = useState(1);
 
+    // Focus Mode State
+    const [expandedExId, setExpandedExId] = useState<number | null>(null);
+    const [completedExIds, setCompletedExIds] = useState<Set<number>>(new Set());
+
     useEffect(() => {
         async function fetchTodayWorkout() {
             if (activeBlockId) {
@@ -360,7 +373,11 @@ export default function ActiveWorkout() {
                     const exs = await Promise.all(
                         todayWorkout.exerciseIds.map(id => db.exerciseLibrary.get(id))
                     );
-                    setExercises(exs.filter(Boolean) as ExerciseLibrary[]);
+                    const validExs = exs.filter(Boolean) as ExerciseLibrary[];
+                    setExercises(validExs);
+                    if (validExs.length > 0) {
+                        setExpandedExId(validExs[0].id!); // Auto-expand first exercise
+                    }
                     return;
                 } else {
                     setExercises([]); // Resting day
@@ -373,21 +390,71 @@ export default function ActiveWorkout() {
         fetchTodayWorkout();
     }, [activeBlockId]);
 
+    // Gamification properties
+    const progressPct = exercises.length > 0 ? (completedExIds.size / exercises.length) * 100 : 0;
+    const isFullyCompleted = exercises.length > 0 && completedExIds.size === exercises.length;
+
+    const handleComplete = (exId: number) => {
+        setCompletedExIds(prev => {
+            const next = new Set(prev);
+            next.add(exId);
+            return next;
+        });
+
+        // Auto-advance Focus Mode to the next unfinished exercise
+        const idx = exercises.findIndex(e => e.id === exId);
+        if (idx !== -1) {
+            for (let i = idx + 1; i < exercises.length; i++) {
+                if (!completedExIds.has(exercises[i].id!)) {
+                    setExpandedExId(exercises[i].id!);
+                    return;
+                }
+            }
+            // If none found after, start from beginning to find skipped ones
+            for (let i = 0; i < idx; i++) {
+                if (!completedExIds.has(exercises[i].id!)) {
+                    setExpandedExId(exercises[i].id!);
+                    return;
+                }
+            }
+        }
+        setExpandedExId(null);
+    };
+
     return (
         <div className="screen-padding workout-container fade-in">
-            <div className="workout-topbar">
-                <div className="workout-header-text">
-                    <h2 style={{ marginBottom: 0 }}>
-                        {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'][(new Date().getDay() === 0 ? 7 : new Date().getDay()) - 1]}
-                    </h2>
-                    <span className="text-secondary text-sm">Semana {currentWeek}</span>
+            <div className="workout-topbar" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div className="workout-header-text">
+                        <h2 style={{ marginBottom: 0 }}>
+                            {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'][(new Date().getDay() === 0 ? 7 : new Date().getDay()) - 1]}
+                        </h2>
+                        <span className="text-secondary text-sm">Semana {currentWeek}</span>
+                    </div>
                 </div>
-                {/* Timer removed from here to not overlap or lock scroll space */}
+
+                {exercises.length > 0 && (
+                    <div className="workout-progress-container mt-16">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                            <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>Progreso</span>
+                            <span style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>{completedExIds.size} / {exercises.length}</span>
+                        </div>
+                        <div className="progress-bar-bg" style={{ height: '6px' }}>
+                            <div className="progress-bar-fill" style={{ width: `${progressPct}%`, transition: 'width 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)' }}></div>
+                        </div>
+                    </div>
+                )}
             </div>
 
             <div className="exercise-list">
                 {exercises.map(ex => (
-                    <ExerciseCard key={ex.id} exercise={ex} />
+                    <ExerciseCard
+                        key={ex.id}
+                        exercise={ex}
+                        isExpanded={expandedExId === ex.id}
+                        onToggle={() => setExpandedExId(expandedExId === ex.id ? null : ex.id!)}
+                        onComplete={() => handleComplete(ex.id!)}
+                    />
                 ))}
                 {exercises.length === 0 && (
                     <div className="empty-state text-center mt-32">
@@ -398,9 +465,22 @@ export default function ActiveWorkout() {
                 )}
             </div>
 
-            <button className="primary-btn bottom-fixed action-glow main-cta" onClick={() => navigate('/dashboard')}>
-                Finalizar Entreno
-            </button>
+            {isFullyCompleted ? (
+                <div className="completion-banner fade-in mt-24 mb-32" style={{ textAlign: 'center' }}>
+                    <div style={{ display: 'inline-flex', padding: '16px', borderRadius: '50%', background: 'rgba(237, 179, 89, 0.2)', marginBottom: '16px', color: 'var(--accent-primary)' }}>
+                        <Trophy size={48} />
+                    </div>
+                    <h2 style={{ color: 'var(--accent-primary)', marginBottom: '8px' }}>¡Entrenamiento Completado!</h2>
+                    <p className="text-secondary mb-24">Gran trabajo. Guarda la sesión y descansa, te lo has ganado.</p>
+                    <button className="primary-btn bottom-fixed action-glow main-cta" onClick={() => navigate('/dashboard')} style={{ background: 'linear-gradient(90deg, #d4983e 0%, var(--accent-primary) 100%)', color: '#121212' }}>
+                        Guardar y Volver
+                    </button>
+                </div>
+            ) : (
+                <button className="secondary-btn bottom-fixed mt-24" onClick={() => navigate('/dashboard')} style={{ marginBottom: '24px' }}>
+                    Pausar / Salir
+                </button>
+            )}
         </div>
     );
 }

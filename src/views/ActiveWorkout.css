@@ -303,3 +303,30 @@
 .italic {
     font-style: italic;
 }
+
+/* Gamification Styles */
+.completed-glow {
+    border: 1px solid rgba(136, 170, 255, 0.3) !important;
+    background: linear-gradient(145deg, rgba(30, 40, 55, 0.4) 0%, rgba(15, 20, 30, 0.8) 100%) !important;
+    box-shadow: inset 0 0 20px rgba(136, 170, 255, 0.05) !important;
+}
+
+.workout-progress-container {
+    padding: 8px 0;
+}
+
+.completion-banner {
+    animation: gold-pulse 2s infinite alternate;
+}
+
+@keyframes gold-pulse {
+    from {
+        transform: scale(1);
+        filter: drop-shadow(0 0 10px rgba(237, 179, 89, 0.1));
+    }
+
+    to {
+        transform: scale(1.02);
+        filter: drop-shadow(0 0 20px rgba(237, 179, 89, 0.4));
+    }
+}
