@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Play, Pause, RotateCcw, CheckCircle2, Circle, Trophy } from 'lucide-react';
+import { Play, Pause, RotateCcw, Trophy } from 'lucide-react';
 import { db, type ExerciseLibrary, type TrackedSet } from '../services/db';
 import { useAppStore } from '../store/useAppStore';
 import './ActiveWorkout.css';
@@ -139,29 +139,32 @@ function ExerciseCard({ exercise }: { exercise: ExerciseLibrary }) {
     ]);
     const [isSaved, setIsSaved] = useState(false);
 
-    const toggleSet = (index: number) => {
-        const newSets = [...sets];
-        newSets[index].completed = !newSets[index].completed;
-        setSets(newSets);
-    };
-
     const updateSet = (index: number, field: 'weight' | 'reps', value: string) => {
         const newSets = [...sets];
         newSets[index][field] = Number(value);
         setSets(newSets);
     };
 
+    // TrackedSets don't strictly need a UI toggle if we just save whatever has input
     const saveExercise = async () => {
         const today = new Date().toISOString().split('T')[0];
-        const completedSets = sets.filter(s => s.completed);
+        // Only save sets that actually have some weight or reps logged
+        const completedSets = sets.filter(s => (s.weight && s.weight > 0) || (s.reps && s.reps > 0));
+
+        if (completedSets.length === 0) {
+            // If they click save without anything, just close it or pretend saved
+            setIsSaved(true);
+            setTimeout(() => setExpanded(false), 500);
+            return;
+        }
 
         for (const set of completedSets) {
             await db.trackedSets.add({
                 date: today,
                 exerciseId: exercise.id!,
                 setNumber: set.setNumber!,
-                weight: set.weight!,
-                reps: set.reps!,
+                weight: set.weight || 0,
+                reps: set.reps || 0,
                 completed: true
             });
         }
@@ -187,10 +190,9 @@ function ExerciseCard({ exercise }: { exercise: ExerciseLibrary }) {
                             <span>Set</span>
                             <span>kg</span>
                             <span>Reps</span>
-                            <span>Done</span>
                         </div>
                         {sets.map((set, idx) => (
-                            <div key={idx} className={`set-row ${set.completed ? 'completed' : ''}`}>
+                            <div key={idx} className="set-row">
                                 <span className="set-num">{set.setNumber}</span>
                                 <input
                                     type="number"
@@ -206,9 +208,6 @@ function ExerciseCard({ exercise }: { exercise: ExerciseLibrary }) {
                                     onChange={(e) => updateSet(idx, 'reps', e.target.value)}
                                     placeholder="0"
                                 />
-                                <button className="check-btn" onClick={() => toggleSet(idx)}>
-                                    {set.completed ? <CheckCircle2 className="text-accent" /> : <Circle className="text-secondary" />}
-                                </button>
                             </div>
                         ))}
                     </div>
