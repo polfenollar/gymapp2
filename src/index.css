@@ -29,21 +29,21 @@ body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
   line-height: 1.5;
-  min-height: 100vh;
-  min-height: -webkit-fill-available;
-  overflow-x: hidden;
+  height: 100dvh;
+  overflow: hidden;
+  /* Prevent browser-level bounce and scroll */
 }
 
 html {
-  height: -webkit-fill-available;
-  overflow-x: hidden;
+  height: 100dvh;
+  overflow: hidden;
 }
 
 #root {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  overflow-x: hidden;
+  height: 100%;
+  overflow: hidden;
 }
 
 a {
@@ -64,8 +64,9 @@ button {
   flex-direction: column;
   flex: 1;
   padding-bottom: 70px;
+  overflow-y: auto;
   overflow-x: hidden;
-  /* Space for bottom nav */
+  -webkit-overflow-scrolling: touch;
 }
 
 .screen-padding {
