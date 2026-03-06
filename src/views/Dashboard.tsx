@@ -133,8 +133,8 @@ export default function Dashboard() {
                 Lanzar Entreno del Día
             </button>
 
-            {/* Render data management component above the bottom nav */}
-            <div style={{ paddingBottom: '80px' }}>
+            {/* Render data management component above the bottom nav and floating CTA */}
+            <div style={{ paddingBottom: '160px' }}>
                 <DataManagement />
             </div>
         </div>
