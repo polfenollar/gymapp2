@@ -5,17 +5,22 @@ import { db, type ExerciseLibrary, type TrackedSet } from '../services/db';
 import { useAppStore } from '../store/useAppStore';
 import './ActiveWorkout.css';
 
-function Chronometer() {
-    const [time, setTime] = useState(0);
+function RestTimer() {
+    const defaultRest = 90; // Default 1m 30s
+    const [restTime, setRestTime] = useState(defaultRest);
+    const [timeLeft, setTimeLeft] = useState(defaultRest);
     const [isRunning, setIsRunning] = useState(false);
 
     useEffect(() => {
         let interval: ReturnType<typeof setInterval>;
-        if (isRunning) {
-            interval = setInterval(() => setTime(t => t + 1), 1000);
+        if (isRunning && timeLeft > 0) {
+            interval = setInterval(() => setTimeLeft(t => t - 1), 1000);
+        } else if (timeLeft === 0 && isRunning) {
+            setIsRunning(false);
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200]); // Vibrate to notify
         }
         return () => clearInterval(interval);
-    }, [isRunning]);
+    }, [isRunning, timeLeft]);
 
     const format = (secs: number) => {
         const m = Math.floor(secs / 60).toString().padStart(2, '0');
@@ -23,21 +28,46 @@ function Chronometer() {
         return `${m}:${s}`;
     };
 
+    const adjustTime = (amount: number) => {
+        setRestTime(prev => {
+            const newTime = Math.max(15, prev + amount); // Min 15s
+            if (!isRunning) setTimeLeft(newTime);
+            return newTime;
+        });
+        if (isRunning) {
+            setTimeLeft(prev => Math.max(0, prev + amount));
+        }
+    };
+
+    const reset = () => {
+        setIsRunning(false);
+        setTimeLeft(restTime);
+    };
+
+    const toggle = () => {
+        if (timeLeft === 0) setTimeLeft(restTime);
+        setIsRunning(!isRunning);
+    };
+
     return (
         <div className="chronometer">
-            <div className="time-display">{format(time)}</div>
-            <div className="chrono-controls">
-                <button onClick={() => setIsRunning(!isRunning)} className="chrono-btn">
-                    {isRunning ? <Pause size={18} /> : <Play size={18} fill="currentColor" />}
+            <button onClick={() => adjustTime(-30)} className="chrono-adj-btn">-</button>
+            <div className={`time-display ${timeLeft === 0 ? 'time-finished' : ''}`} onClick={toggle}>
+                {format(timeLeft)}
+            </div>
+            <button onClick={() => adjustTime(30)} className="chrono-adj-btn">+</button>
+
+            <div className="chrono-controls" style={{ marginLeft: '12px' }}>
+                <button onClick={toggle} className="chrono-btn">
+                    {isRunning ? <Pause size={16} /> : <Play size={16} fill="currentColor" />}
                 </button>
-                <button onClick={() => { setTime(0); setIsRunning(false); }} className="chrono-btn">
-                    <RotateCcw size={18} />
+                <button onClick={reset} className="chrono-btn">
+                    <RotateCcw size={16} />
                 </button>
             </div>
         </div>
     );
 }
-
 function ProgressionTable({ exerciseId }: { exerciseId: number }) {
     const [history, setHistory] = useState<{ date: string, sets: TrackedSet[] }[]>([]);
 
@@ -254,7 +284,7 @@ export default function ActiveWorkout() {
                     <span className="text-secondary text-sm">Semana {currentWeek}</span>
                 </div>
                 <div className="workout-header-chrono">
-                    <Chronometer />
+                    <RestTimer />
                 </div>
             </div>
 
