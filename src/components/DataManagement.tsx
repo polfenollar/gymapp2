@@ -66,6 +66,12 @@ export default function DataManagement() {
                 }
             });
 
+            // Make sure the global state knows the new active block ID from the imported data!
+            if (data.blockConfigs && data.blockConfigs.length > 0) {
+                // By clearing the zustand persist storage, Splash will pick up the last config from Dexie automatically on reload.
+                localStorage.removeItem('evogym-storage');
+            }
+
             setStatus({ type: 'success', message: 'Datos restaurados correctamente. Recargando...' });
 
             // Reload to re-initialize stores and state
