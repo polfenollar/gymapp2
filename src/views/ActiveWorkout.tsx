@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Play, Pause, RotateCcw, Trophy, ArrowLeft } from 'lucide-react';
+import { Play, Pause, RotateCcw, Trophy, ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
 import { db, type ExerciseLibrary, type TrackedSet } from '../services/db';
 import { useAppStore } from '../store/useAppStore';
 import './ActiveWorkout.css';
@@ -208,6 +208,7 @@ function ExerciseCard({
 
     const [sets, setSets] = useState<Partial<TrackedSet>[]>(initialSets);
     const [isSaved, setIsSaved] = useState(false);
+    const [showHistory, setShowHistory] = useState(false);
 
     const updateSet = (index: number, field: 'weight' | 'reps', value: string) => {
         const newSets = [...sets];
@@ -318,9 +319,20 @@ function ExerciseCard({
                         )}
                     </div>
 
-                    <div className="history-section">
-                        <h4 className="hist-title">Progresión (Últimas 4 Sesiones)</h4>
-                        <ProgressionTable exerciseId={exercise.id!} muscleGroup={exercise.muscleGroup} />
+                    <div className="history-section" style={{ marginTop: '24px' }}>
+                        <div
+                            className="hist-header"
+                            onClick={() => setShowHistory(!showHistory)}
+                            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', backgroundColor: 'var(--bg-tertiary)', padding: '12px 16px', borderRadius: 'var(--radius-md)' }}
+                        >
+                            <h4 className="hist-title" style={{ margin: 0, fontSize: '14px' }}>Progresión (Últimas 4 Sesiones)</h4>
+                            {showHistory ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                        </div>
+                        {showHistory && (
+                            <div style={{ marginTop: '8px' }}>
+                                <ProgressionTable exerciseId={exercise.id!} muscleGroup={exercise.muscleGroup} />
+                            </div>
+                        )}
                     </div>
 
                     <div className="exercise-card-actions mt-16">
@@ -407,11 +419,11 @@ export default function ActiveWorkout() {
                 const topbar = document.querySelector('.workout-topbar');
                 if (el && topbar) {
                     const topbarHeight = topbar.getBoundingClientRect().height;
-                    const yOffset = -(topbarHeight + 16); // Exactly below the sticky bar
+                    const yOffset = -topbarHeight; // Posición exacta justo debajo de la barra, ocultando la tarjeta anterior
                     const y = el.getBoundingClientRect().top + window.scrollY + yOffset;
                     window.scrollTo({ top: y, behavior: 'smooth' });
                 }
-            }, 450); // Give enough time for the previous card to fully collapse
+            }, 450); // Mismo timeout para asegurar que la anterior colapsó
         };
 
         // Auto-advance Focus Mode to the next unfinished exercise
