@@ -218,11 +218,14 @@ function ExerciseCard({ exercise }: { exercise: ExerciseLibrary }) {
                         <ProgressionTable exerciseId={exercise.id!} />
                     </div>
 
-                    {!isSaved && (
-                        <button className="primary-btn sm-btn mt-16" onClick={saveExercise}>
-                            Guardar Series
-                        </button>
-                    )}
+                    <div className="exercise-card-actions mt-16">
+                        <RestTimer />
+                        {!isSaved && (
+                            <button className="primary-btn sm-btn" onClick={saveExercise} style={{ padding: '8px 16px', fontSize: '14px', flex: 'none' }}>
+                                Guardar
+                            </button>
+                        )}
+                    </div>
                 </div>
             )}
         </div>
@@ -283,9 +286,7 @@ export default function ActiveWorkout() {
                     </h2>
                     <span className="text-secondary text-sm">Semana {currentWeek}</span>
                 </div>
-                <div className="workout-header-chrono">
-                    <RestTimer />
-                </div>
+                {/* Timer removed from here to not overlap or lock scroll space */}
             </div>
 
             <div className="exercise-list">
