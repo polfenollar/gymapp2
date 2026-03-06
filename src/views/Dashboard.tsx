@@ -143,12 +143,15 @@ export default function Dashboard() {
             }} />
 
             <div className="block-header card glass-card" onClick={() => navigate('/config')}>
-                <div className="flex-between mb-8">
-                    <div className="badge">{activeBlock?.target}</div>
-                    <span className="text-secondary text-sm">Toca para ver el plan</span>
+                {/* Safari inner content wrapper to fix overflow clipping */}
+                <div style={{ position: 'relative', zIndex: 2, pointerEvents: 'none' }}>
+                    <div className="flex-between mb-8">
+                        <div className="badge">{activeBlock?.target}</div>
+                        <span className="text-secondary text-sm">Toca para ver el plan</span>
+                    </div>
+                    <h2>Semana <AnimatedNumber value={currentWeek} /> de {activeBlock?.durationWeeks}</h2>
+                    <p className="text-secondary" style={{ marginTop: '8px' }}>{activeBlock?.daysPerWeek} Días de Entrenamiento / Semana</p>
                 </div>
-                <h2>Semana <AnimatedNumber value={currentWeek} /> de {activeBlock?.durationWeeks}</h2>
-                <p className="text-secondary" style={{ marginTop: '8px' }}>{activeBlock?.daysPerWeek} Días de Entrenamiento / Semana</p>
             </div>
 
             <h3 className="section-title">Tu Progreso</h3>

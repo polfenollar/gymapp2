@@ -84,6 +84,9 @@
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    transform: translateZ(0);
+    /* Fix Safari clip bug */
+    -webkit-transform: translateZ(0);
 }
 
 .block-header {
@@ -91,6 +94,8 @@
     transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.3s;
     position: relative;
     overflow: hidden;
+    isolation: isolate;
+    /* Create new stacking context */
 }
 
 .block-header::after {
@@ -103,6 +108,8 @@
     background: linear-gradient(to right, transparent, rgba(237, 179, 89, 0.05), transparent);
     transform: skewX(-20deg);
     animation: shine 6s infinite;
+    z-index: 1;
+    /* Keep under text wrapper */
 }
 
 @keyframes shine {
