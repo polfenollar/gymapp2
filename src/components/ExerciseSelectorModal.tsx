@@ -12,8 +12,6 @@ interface ExerciseSelectorModalProps {
     onToggle: (id: number) => void;
 }
 
-const CATEGORIES = ['All', 'Piernas y Glúteos', 'Pecho, Hombros y Tríceps', 'Espalda y Bíceps', 'Core', 'Cardio y Movilidad'];
-
 export default function ExerciseSelectorModal({
     isOpen,
     onClose,
@@ -24,6 +22,12 @@ export default function ExerciseSelectorModal({
 }: ExerciseSelectorModalProps) {
     const [searchTerm, setSearchTerm] = useState('');
     const [activeCategory, setActiveCategory] = useState('All');
+
+    // Dynamically calculate available categories based on library content
+    const dynamicCategories = useMemo(() => {
+        const groups = new Set(library.map(ex => ex.muscleGroup).filter((v): v is string => !!v));
+        return ['All', ...Array.from(groups)];
+    }, [library]);
 
     // Filter exercises based on search term and category
     const filteredLibrary = useMemo(() => {
@@ -68,7 +72,7 @@ export default function ExerciseSelectorModal({
                 {/* Categories Scrollable Row */}
                 <div className="categories-scroll">
                     <div className="filter-chips">
-                        {CATEGORIES.map(cat => (
+                        {dynamicCategories.map(cat => (
                             <button
                                 key={cat}
                                 className={`filter-chip ${activeCategory === cat ? 'active' : ''}`}
