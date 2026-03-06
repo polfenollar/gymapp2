@@ -404,12 +404,14 @@ export default function ActiveWorkout() {
         const scrollToNext = (nextId: number) => {
             setTimeout(() => {
                 const el = document.getElementById(`exercise-${nextId}`);
-                if (el) {
-                    const yOffset = -140; // Space for the topbar + margin
+                const topbar = document.querySelector('.workout-topbar');
+                if (el && topbar) {
+                    const topbarHeight = topbar.getBoundingClientRect().height;
+                    const yOffset = -(topbarHeight + 16); // Exactly below the sticky bar
                     const y = el.getBoundingClientRect().top + window.scrollY + yOffset;
                     window.scrollTo({ top: y, behavior: 'smooth' });
                 }
-            }, 300); // Wait for the transition
+            }, 450); // Give enough time for the previous card to fully collapse
         };
 
         // Auto-advance Focus Mode to the next unfinished exercise
