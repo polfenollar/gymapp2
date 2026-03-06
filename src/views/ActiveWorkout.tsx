@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Play, Pause, RotateCcw, Trophy } from 'lucide-react';
+import { Play, Pause, RotateCcw, Trophy, ArrowLeft } from 'lucide-react';
 import { db, type ExerciseLibrary, type TrackedSet } from '../services/db';
 import { useAppStore } from '../store/useAppStore';
 import './ActiveWorkout.css';
@@ -425,11 +425,16 @@ export default function ActiveWorkout() {
         <div className="screen-padding workout-container fade-in">
             <div className="workout-topbar" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div className="workout-header-text">
-                        <h2 style={{ marginBottom: 0 }}>
-                            {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'][(new Date().getDay() === 0 ? 7 : new Date().getDay()) - 1]}
-                        </h2>
-                        <span className="text-secondary text-sm">Semana {currentWeek}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <button className="icon-btn" onClick={() => navigate('/dashboard')} style={{ margin: 0 }}>
+                            <ArrowLeft size={24} />
+                        </button>
+                        <div className="workout-header-text">
+                            <h2 style={{ marginBottom: 0 }}>
+                                {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'][(new Date().getDay() === 0 ? 7 : new Date().getDay()) - 1]}
+                            </h2>
+                            <span className="text-secondary text-sm">Semana {currentWeek}</span>
+                        </div>
                     </div>
                 </div>
 
@@ -476,11 +481,7 @@ export default function ActiveWorkout() {
                         Guardar y Volver
                     </button>
                 </div>
-            ) : (
-                <button className="secondary-btn bottom-fixed mt-24" onClick={() => navigate('/dashboard')} style={{ marginBottom: '24px' }}>
-                    Pausar / Salir
-                </button>
-            )}
+            ) : null}
         </div>
     );
 }
