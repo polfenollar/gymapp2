@@ -85,8 +85,9 @@ input[type="range"] {
 .scrollable-area {
     flex: 1;
     overflow-y: auto;
-    margin-bottom: 80px;
-    /* Space for action row */
+    margin-bottom: 32px;
+    padding-bottom: 180px;
+    /* Space for double action row at bottom */
 }
 
 .day-card {

@@ -182,7 +182,7 @@ export default function ConfigFlow() {
                         <div className="badge">{activeBlock.target}</div>
                     </div>
 
-                    <div className="plan-card">
+                    <div className="plan-card mb-16">
                         <h3 className="mb-8">Parámetros</h3>
                         <p className="text-secondary">Duración: {activeBlock.durationWeeks} Semanas</p>
                         <p className="text-secondary">Frecuencia: {activeBlock.daysPerWeek} Días/Semana</p>
